@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finca El Rosal — Gestión Ganadera</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tierra: #5C3D1E;
+    --tierra-light: #7A5230;
+    --pasto: #4A6741;
+    --pasto-light: #6B8F62;
+    --crema: #F5EDD9;
+    --crema-dark: #EAD9BB;
+    --barro: #9B6B3A;
+    --sol: #D4882A;
+    --sol-light: #E8A94B;
+    --noche: #1A1208;
+    --blanco: #FEFAF3;
+    --rojo-alerta: #8B2020;
+    --verde-ok: #2D5A27;
+    --azul-info: #1A3A5C;
+    --gris-mid: #8B7355;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--crema);
+    color: var(--noche);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--tierra);
+    background-image: repeating-linear-gradient(
+      90deg, transparent, transparent 2px,
+      rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px
+    );
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    border-bottom: 4px solid var(--sol);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+  .logo-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--crema);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .logo-text span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--sol-light);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .hstat {
+    text-align: center;
+  }
+  .hstat-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--sol-light);
+    font-weight: 500;
+  }
+  .hstat-label {
+    font-size: 0.6rem;
+    color: var(--crema-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--noche);
+    display: flex;
+    border-bottom: 2px solid var(--barro);
+    overflow-x: auto;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--gris-mid);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.9rem 1.4rem;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  nav button:hover { color: var(--crema); }
+  nav button.active {
+    color: var(--sol-light);
+    border-bottom-color: var(--sol);
+    background: rgba(212,136,42,0.08);
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SECTION HEADER ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--tierra);
+    font-weight: 700;
+  }
+
+  /* ── FILTERS BAR ── */
+  .filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filters input, .filters select {
+    background: var(--blanco);
+    border: 2px solid var(--crema-dark);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    color: var(--noche);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .filters input:focus, .filters select:focus {
+    border-color: var(--sol);
+  }
+  .filters input[type="text"] { min-width: 220px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.2rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: var(--tierra);
+    color: var(--crema);
+  }
+  .btn-primary:hover { background: var(--tierra-light); }
+  .btn-success {
+    background: var(--pasto);
+    color: var(--blanco);
+  }
+  .btn-success:hover { background: var(--pasto-light); }
+  .btn-warning {
+    background: var(--sol);
+    color: var(--noche);
+  }
+  .btn-warning:hover { background: var(--sol-light); }
+  .btn-danger {
+    background: var(--rojo-alerta);
+    color: white;
+  }
+  .btn-danger:hover { background: #a02626; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--tierra);
+    border: 2px solid var(--tierra);
+  }
+  .btn-ghost:hover { background: var(--crema-dark); }
+  .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.72rem; }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    background: var(--blanco);
+    border-radius: 10px;
+    border: 2px solid var(--crema-dark);
+    overflow: auto;
+    box-shadow: 0 2px 12px rgba(92,61,30,0.08);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  thead {
+    background: var(--tierra);
+    background-image: repeating-linear-gradient(
+      90deg, transparent, transparent 3px,
+      rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 6px
+    );
+  }
+  thead th {
+    color: var(--crema);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.75rem 0.9rem;
+    text-align: left;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  thead th:last-child { border-right: none; }
+  tbody tr {
+    border-bottom: 1px solid var(--crema-dark);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: rgba(212,136,42,0.06); }
+  tbody td {
+    padding: 0.65rem 0.9rem;
+    color: var(--noche);
+    vertical-align: middle;
+    border-right: 1px solid var(--crema-dark);
+  }
+  tbody td:last-child { border-right: none; }
+  tbody tr:last-child { border-bottom: none; }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .badge-preñada { background: #d4edda; color: #1a5928; }
+  .badge-vacia { background: #ffeaa7; color: #7A5230; }
+  .badge-servida { background: #cce5ff; color: #1a3a6e; }
+  .badge-descarte { background: #f8d7da; color: #721c24; }
+  .badge-preparto { background: #e8d5f5; color: #4a1675; }
+  .badge-muerta { background: #343a40; color: #dee2e6; }
+  .badge-cat-VH { background: #fff3cd; color: #7A5230; }
+  .badge-cat-VP { background: #d4edda; color: #1a5928; }
+  .badge-cat-NV { background: #cce5ff; color: #1a3a6e; }
+  .badge-cat-To { background: #f5c6cb; color: #721c24; }
+  .badge-cat-HL { background: #e2d9f3; color: #4a1675; }
+  .badge-cat { font-size: 0.62rem; padding: 0.15rem 0.45rem; }
+
+  /* ── CARDS DASHBOARD ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .card {
+    background: var(--blanco);
+    border-radius: 10px;
+    border: 2px solid var(--crema-dark);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(92,61,30,0.07);
+  }
+  .card-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+  .card-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gris-mid);
+  }
+  .card.verde .card-num { color: var(--pasto); }
+  .card.tierra .card-num { color: var(--tierra); }
+  .card.sol .card-num { color: var(--sol); }
+  .card.rojo .card-num { color: var(--rojo-alerta); }
+  .card.azul .card-num { color: var(--azul-info); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,18,8,0.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--blanco);
+    border-radius: 12px;
+    border: 2px solid var(--crema-dark);
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .modal-header {
+    background: var(--tierra);
+    padding: 1.1rem 1.5rem;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--crema);
+    font-size: 1.1rem;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--crema);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  .modal-close:hover { opacity: 1; }
+  .modal-body { padding: 1.5rem; }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tierra);
+    font-weight: 500;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: var(--crema);
+    border: 2px solid var(--crema-dark);
+    border-radius: 6px;
+    padding: 0.55rem 0.75rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    color: var(--noche);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--sol); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 2px solid var(--crema-dark);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* ── SECTION DIVIDER ── */
+  .section-divider {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--barro);
+    margin: 1.5rem 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--crema-dark);
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--pasto);
+    color: white;
+    padding: 0.85rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 999;
+    display: none;
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* ── REPRODUCTIVO TIMELINE ── */
+  .estado-history {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .estado-dot {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--crema-dark);
+    color: var(--tierra);
+    white-space: nowrap;
+  }
+  .estado-dot.pos { background: #d4edda; color: #155724; }
+  .estado-dot.vac { background: #fff3cd; color: #856404; }
+  .estado-dot.srv { background: #d0e8ff; color: #003580; }
+  .estado-dot.bad { background: #f8d7da; color: #721c24; }
+
+  /* ── PESAJE CARD ── */
+  .pesaje-card {
+    background: var(--blanco);
+    border: 2px solid var(--crema-dark);
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(92,61,30,0.07);
+  }
+  .pesaje-animal-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--tierra);
+    margin-bottom: 0.75rem;
+  }
+  .pesaje-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+  }
+  .pesaje-fecha {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gris-mid);
+    min-width: 90px;
+  }
+  .pesaje-bar-wrap {
+    flex: 1;
+    height: 18px;
+    background: var(--crema-dark);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .pesaje-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pasto), var(--pasto-light));
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .pesaje-kg {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: right;
+    color: var(--tierra);
+  }
+
+  /* ── NOVEDADES ── */
+  .novedad-item {
+    background: var(--blanco);
+    border-left: 4px solid var(--sol);
+    border-radius: 0 8px 8px 0;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .novedad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.3rem;
+  }
+  .novedad-animal {
+    font-weight: 700;
+    color: var(--tierra);
+    font-size: 0.9rem;
+  }
+  .novedad-fecha {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--gris-mid);
+  }
+  .novedad-tipo {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--barro);
+    margin-bottom: 0.3rem;
+  }
+  .novedad-texto { font-size: 0.84rem; color: var(--noche); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 700px) {
+    header { padding: 0 1rem; }
+    .header-stats { gap: 0.75rem; }
+    .hstat-num { font-size: 1rem; }
+    main { padding: 1rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid.cols-3 { grid-template-columns: 1fr; }
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gris-mid);
+  }
+  .empty-state .big { font-size: 3rem; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* row actions */
+  .row-actions { display: flex; gap: 6px; }
+
+  /* search highlight */
+  mark { background: rgba(212,136,42,0.3); border-radius: 2px; padding: 0 2px; }
+
+  .count-badge {
+    background: var(--sol);
+    color: var(--noche);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  /* ── IA CHAT ── */
+  .ia-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1.25rem;
+    height: calc(100vh - 180px);
+    min-height: 500px;
+  }
+  .ia-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .ia-key-box {
+    background: var(--blanco);
+    border: 2px solid var(--crema-dark);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .ia-key-box label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tierra);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .ia-key-box input {
+    width: 100%;
+    background: var(--crema);
+    border: 2px solid var(--crema-dark);
+    border-radius: 6px;
+    padding: 0.5rem 0.6rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--noche);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ia-key-box input:focus { border-color: var(--sol); }
+  .ia-key-status {
+    font-size: 0.7rem;
+    margin-top: 6px;
+    font-weight: 700;
+  }
+  .ia-key-status.ok { color: var(--pasto); }
+  .ia-key-status.no { color: var(--gris-mid); }
+
+  .ia-suggestions {
+    background: var(--blanco);
+    border: 2px solid var(--crema-dark);
+    border-radius: 10px;
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .ia-suggestions-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tierra);
+    margin-bottom: 0.6rem;
+  }
+  .ia-chip {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--crema);
+    border: 1.5px solid var(--crema-dark);
+    border-radius: 7px;
+    padding: 0.55rem 0.7rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.75rem;
+    color: var(--tierra);
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: all 0.15s;
+    line-height: 1.35;
+  }
+  .ia-chip:hover {
+    background: var(--crema-dark);
+    border-color: var(--sol);
+    color: var(--noche);
+  }
+
+  .ia-chat-wrap {
+    display: flex;
+    flex-direction: column;
+    background: var(--blanco);
+    border: 2px solid var(--crema-dark);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .ia-chat-header {
+    background: var(--tierra);
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ia-chat-header-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--sol);
+    box-shadow: 0 0 8px var(--sol);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+  .ia-chat-header span {
+    font-family: 'Playfair Display', serif;
+    color: var(--crema);
+    font-size: 0.95rem;
+  }
+  .ia-chat-header small {
+    font-family: 'DM Mono', monospace;
+    color: var(--sol-light);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    margin-left: auto;
+  }
+
+  .ia-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .ia-msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    animation: fadeUp 0.3s ease;
+  }
+  @keyframes fadeUp { from{transform:translateY(8px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+  .ia-msg.user { flex-direction: row-reverse; }
+  .ia-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .ia-avatar.bot { background: var(--tierra); }
+  .ia-avatar.user { background: var(--pasto); }
+  .ia-bubble {
+    max-width: 78%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.55;
+  }
+  .ia-bubble.bot {
+    background: var(--crema);
+    border: 1.5px solid var(--crema-dark);
+    color: var(--noche);
+    border-top-left-radius: 4px;
+  }
+  .ia-bubble.user {
+    background: var(--tierra);
+    color: var(--crema);
+    border-top-right-radius: 4px;
+  }
+  .ia-bubble strong { color: var(--sol); }
+  .ia-bubble.bot strong { color: var(--tierra); }
+  .ia-bubble ul { padding-left: 1.2rem; margin: 0.4rem 0; }
+  .ia-bubble li { margin-bottom: 0.3rem; }
+
+  .ia-typing {
+    display: flex;
+    gap: 5px;
+    padding: 0.5rem 0;
+    align-items: center;
+  }
+  .ia-typing span {
+    width: 7px; height: 7px;
+    background: var(--barro);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .ia-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .ia-typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0);} 30%{transform:translateY(-6px);} }
+
+  .ia-input-row {
+    display: flex;
+    gap: 0.6rem;
+    padding: 1rem;
+    border-top: 2px solid var(--crema-dark);
+    background: var(--blanco);
+  }
+  .ia-input-row textarea {
+    flex: 1;
+    background: var(--crema);
+    border: 2px solid var(--crema-dark);
+    border-radius: 8px;
+    padding: 0.65rem 0.9rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.85rem;
+    color: var(--noche);
+    outline: none;
+    resize: none;
+    min-height: 44px;
+    max-height: 120px;
+    transition: border-color 0.2s;
+  }
+  .ia-input-row textarea:focus { border-color: var(--sol); }
+  .ia-send-btn {
+    background: var(--tierra);
+    border: none;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    color: var(--crema);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ia-send-btn:hover { background: var(--tierra-light); }
+  .ia-send-btn:disabled { background: var(--crema-dark); cursor:not-allowed; }
+
+  @media (max-width: 700px) {
+    .ia-layout { grid-template-columns: 1fr; height: auto; }
+    .ia-chat-wrap { min-height: 400px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🐄</div>
+    <div class="logo-text">
+      <h1>Finca El Rosal</h1>
+      <span>Sistema de Gestión Ganadera</span>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-num" id="hs-total">0</div><div class="hstat-label">Total</div></div>
+    <div class="hstat"><div class="hstat-num" id="hs-prenadas">0</div><div class="hstat-label">Preñadas</div></div>
+    <div class="hstat"><div class="hstat-num" id="hs-vacias">0</div><div class="hstat-label">Vacías</div></div>
+    <div class="hstat"><div class="hstat-num" id="hs-preparto">0</div><div class="hstat-label">Preparto</div></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showSection('dashboard')" id="tab-dashboard">📊 Dashboard</button>
+  <button onclick="showSection('inventario')" id="tab-inventario">📋 Inventario</button>
+  <button onclick="showSection('reproductivo')" id="tab-reproductivo">🔬 Reproductivo</button>
+  <button onclick="showSection('pesaje')" id="tab-pesaje">⚖️ Pesaje</button>
+  <button onclick="showSection('novedades')" id="tab-novedades">📝 Novedades</button>
+  <button onclick="showSection('ia')" id="tab-ia" style="margin-left:auto;color:var(--sol-light);border-bottom-color:transparent;">🤖 Asistente IA</button>
+</nav>
+
+<main>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="section active" id="section-dashboard">
+    <div class="section-header">
+      <div class="section-title">Panel Principal</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gris-mid);" id="dash-fecha"></div>
+    </div>
+    <div class="cards-grid" id="dash-cards"></div>
+
+    <div class="section-divider">⚠ Alertas — Próximos Partos</div>
+    <div id="dash-alertas"></div>
+
+    <div class="section-divider">📊 Distribución Reproductiva</div>
+    <div id="dash-repro-dist"></div>
+  </div>
+
+  <!-- ══ INVENTARIO ══ -->
+  <div class="section" id="section-inventario">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div class="section-title">Inventario General</div>
+        <span class="count-badge" id="inv-count">0</span>
+      </div>
+      <div class="filters">
+        <input type="text" placeholder="🔍 Buscar nombre, chapeta, piel..." id="inv-search" oninput="renderInventario()">
+        <select id="inv-cat" onchange="renderInventario()">
+          <option value="">Todas las categorías</option>
+          <option value="VH">VH — Vaca Horro</option>
+          <option value="VP">VP — Vaca Parida</option>
+          <option value="NV">NV — Novilla</option>
+          <option value="To">To — Toro</option>
+          <option value="HL">HL — Hembra Levante</option>
+        </select>
+        <select id="inv-estado" onchange="renderInventario()">
+          <option value="">Todos los estados</option>
+          <option value="P+">Preñadas (P+)</option>
+          <option value="CLOD">CLOD</option>
+          <option value="FOD">FOD</option>
+          <option value="SERVIDA">Servidas</option>
+          <option value="PREPARTO">Preparto</option>
+          <option value="DESCARTE">Descarte</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('animal', null)">+ Agregar Animal</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Chapeta</th>
+            <th>Piel</th>
+            <th>Cat</th>
+            <th>Ult. Estado Rep.</th>
+            <th>Próx. Parto</th>
+            <th>Concepción</th>
+            <th>D.E.L</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ REPRODUCTIVO ══ -->
+  <div class="section" id="section-reproductivo">
+    <div class="section-header">
+      <div class="section-title">Seguimiento Reproductivo</div>
+      <div class="filters">
+        <input type="text" placeholder="🔍 Buscar animal..." id="rep-search" oninput="renderReproductivo()">
+        <select id="rep-filtro" onchange="renderReproductivo()">
+          <option value="">Todos</option>
+          <option value="prenada">Preñadas</option>
+          <option value="vacia">Vacías/CLOD/FOD</option>
+          <option value="servida">Servidas</option>
+          <option value="preparto">Preparto</option>
+          <option value="problema">Con problema</option>
+        </select>
+        <button class="btn btn-success" onclick="openModal('reproductivo', null)">+ Registrar Estado</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Animal</th>
+            <th>Cat</th>
+            <th>Historial de Estados</th>
+            <th>Estado Actual</th>
+            <th>Último Parto</th>
+            <th>Próx. Parto</th>
+            <th>Concepción</th>
+            <th>D.E.L</th>
+          </tr>
+        </thead>
+        <tbody id="rep-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ PESAJE ══ -->
+  <div class="section" id="section-pesaje">
+    <div class="section-header">
+      <div class="section-title">Control de Pesaje</div>
+      <button class="btn btn-primary" onclick="openModal('pesaje', null)">+ Nuevo Pesaje</button>
+    </div>
+    <div id="pesaje-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;"></div>
+  </div>
+
+  <!-- ══ NOVEDADES ══ -->
+  <div class="section" id="section-novedades">
+    <div class="section-header">
+      <div class="section-title">Novedades</div>
+      <div class="filters">
+        <select id="nov-tipo" onchange="renderNovedades()">
+          <option value="">Todos los tipos</option>
+          <option value="PARTO">Parto</option>
+          <option value="MUERTE">Muerte</option>
+          <option value="VENTA">Venta</option>
+          <option value="ENFERMEDAD">Enfermedad</option>
+          <option value="TRATAMIENTO">Tratamiento</option>
+          <option value="GENERAL">General</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('novedad', null)">+ Nueva Novedad</button>
+      </div>
+    </div>
+    <div id="novedades-list"></div>
+  </div>
+
+  <!-- ══ IA ASISTENTE ══ -->
+  <div class="section" id="section-ia">
+    <div class="ia-layout">
+
+      <!-- Sidebar -->
+      <div class="ia-sidebar">
+        <div class="ia-suggestions">
+          <div class="ia-suggestions-title">💬 Preguntas rápidas</div>
+          <button class="ia-chip" onclick="sendQuick(this)">🐄 ¿Cuántas vacas están preñadas y cuándo paren las próximas?</button>
+          <button class="ia-chip" onclick="sendQuick(this)">⚠️ ¿Qué animales tienen historial problemático y deberían evaluarse para descarte?</button>
+          <button class="ia-chip" onclick="sendQuick(this)">📅 Dame un plan reproductivo para los próximos 3 meses</button>
+          <button class="ia-chip" onclick="sendQuick(this)">📈 ¿Qué animales de pesaje están ganando o perdiendo peso? ¿Es normal?</button>
+          <button class="ia-chip" onclick="sendQuick(this)">🔬 ¿Cuántas vacas llevan más de 2 ciclos CLOD/FOD consecutivos? ¿Qué recomiendas?</button>
+          <button class="ia-chip" onclick="sendQuick(this)">🍼 Proyecta cuántos terneros esperamos en los próximos 90 días y de qué vacas</button>
+          <button class="ia-chip" onclick="sendQuick(this)">💊 ¿Qué vacas tienen notas de tratamiento o problemas de salud registrados?</button>
+          <button class="ia-chip" onclick="sendQuick(this)">🏆 Rankea las vacas por potencial reproductivo según su historial</button>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div class="ia-chat-wrap">
+        <div class="ia-chat-header">
+          <div class="ia-chat-header-dot"></div>
+          <span>Don Rosal — Asistente Ganadero IA</span>
+          <small>Powered by Gemini 1.5 Flash ⚡</small>
+          <button onclick="clearChat()" style="background:none;border:none;color:rgba(245,237,217,0.5);cursor:pointer;font-size:0.7rem;margin-left:0.5rem;" title="Limpiar chat">🗑 limpiar</button>
+        </div>
+
+        <div class="ia-messages" id="ia-messages">
+          <div class="ia-msg">
+            <div class="ia-avatar bot">🐄</div>
+            <div class="ia-bubble bot">
+              <strong>¡Buenas! Soy Don Rosal</strong>, tu asistente ganadero con acceso completo al inventario de la finca.<br><br>
+              Puedo analizar el estado reproductivo de tus animales, proyectar partos, detectar problemas, sugerir planes de manejo y mucho más.<br><br>
+              ¡Pregúntame lo que quieras o usa los botones de la izquierda! 🤠
+            </div>
+          </div>
+        </div>
+
+        <div class="ia-input-row">
+          <textarea id="ia-input" placeholder="Pregúntale algo a Don Rosal sobre la finca..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+          <button class="ia-send-btn" onclick="sendMessage()" id="ia-send-btn">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══ MODAL ANIMAL ══ -->
+<div class="modal-overlay" id="modal-animal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-animal-title">🐄 Agregar Animal</h3>
+      <button class="modal-close" onclick="closeModal('animal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre</label><input id="a-nombre" type="text" placeholder="Ej. TEQUILA"></div>
+        <div class="form-group"><label>Categoría</label>
+          <select id="a-cat">
+            <option value="VH">VH — Vaca Horro</option>
+            <option value="VP">VP — Vaca Parida</option>
+            <option value="NV">NV — Novilla</option>
+            <option value="To">To — Toro</option>
+            <option value="HL">HL — Hembra Levante</option>
+          </select>
+        </div>
+        <div class="form-group"><label>N° Chapeta</label><input id="a-chapeta" type="text" placeholder="Ej. 4723-0"></div>
+        <div class="form-group"><label>N° Piel</label><input id="a-piel" type="text" placeholder="Ej. 22 EMB"></div>
+        <div class="form-group"><label>Fecha Último Parto</label><input id="a-parto" type="date"></div>
+        <div class="form-group"><label>Fecha Próx. Parto</label><input id="a-prox-parto" type="date"></div>
+        <div class="form-group"><label>Padre</label><input id="a-padre" type="text"></div>
+        <div class="form-group"><label>Concepción</label><input id="a-concepcion" type="text" placeholder="Ej. EMB F1, MN"></div>
+        <div class="form-group"><label>D.E.L (días en leche)</label><input id="a-del" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Estado Reproductivo</label>
+          <select id="a-estado">
+            <option value="P+">P+ (Preñada)</option>
+            <option value="PREPARTO">PREPARTO</option>
+            <option value="CLOD">CLOD</option>
+            <option value="FOD">FOD</option>
+            <option value="SERVIDA">SERVIDA</option>
+            <option value="FOI">FOI</option>
+            <option value="MF">MF</option>
+            <option value="RP">RP</option>
+            <option value="DESCARTE">DESCARTE</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Ult. Concepción Toro</label><input id="a-ult-concepcion" type="text"></div>
+        <div class="form-group full"><label>Observaciones</label><textarea id="a-obs" placeholder="Notas adicionales..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('animal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAnimal()">💾 Guardar Animal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL REPRODUCTIVO ══ -->
+<div class="modal-overlay" id="modal-reproductivo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🔬 Registrar Estado Reproductivo</h3>
+      <button class="modal-close" onclick="closeModal('reproductivo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Animal</label>
+          <select id="r-animal"></select>
+        </div>
+        <div class="form-group"><label>Fecha</label><input id="r-fecha" type="date"></div>
+        <div class="form-group"><label>Estado</label>
+          <select id="r-estado">
+            <option value="P+">P+ (Preñada)</option>
+            <option value="PREPARTO">PREPARTO</option>
+            <option value="CLOD">CLOD</option>
+            <option value="FOD">FOD</option>
+            <option value="SERVIDA">SERVIDA</option>
+            <option value="CLOI">CLOI</option>
+            <option value="FOI">FOI</option>
+            <option value="MF">MF</option>
+            <option value="RP">RP</option>
+            <option value="ABORTADA">ABORTADA</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Toro / Método</label><input id="r-toro" type="text" placeholder="Ej. REM INFINITO, IATF"></div>
+        <div class="form-group full"><label>Observaciones</label><textarea id="r-obs" placeholder="Notas del diagnóstico..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('reproductivo')">Cancelar</button>
+      <button class="btn btn-success" onclick="saveReproductivo()">💾 Guardar Estado</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PESAJE ══ -->
+<div class="modal-overlay" id="modal-pesaje">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>⚖️ Registrar Pesaje</h3>
+      <button class="modal-close" onclick="closeModal('pesaje')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Animal (nombre o número)</label><input id="p-animal" type="text" placeholder="Ej. germani o 240-23"></div>
+        <div class="form-group"><label>N° Animal</label><input id="p-numero" type="text"></div>
+        <div class="form-group"><label>Fecha Pesaje</label><input id="p-fecha" type="date"></div>
+        <div class="form-group"><label>Peso (KG)</label><input id="p-peso" type="number" step="0.5" placeholder="0"></div>
+        <div class="form-group full"><label>Observaciones</label><textarea id="p-obs" placeholder="Condición corporal, notas..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('pesaje')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePesaje()">💾 Guardar Pesaje</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NOVEDAD ══ -->
+<div class="modal-overlay" id="modal-novedad">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📝 Nueva Novedad</h3>
+      <button class="modal-close" onclick="closeModal('novedad')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Animal</label>
+          <select id="n-animal"><option value="_general">-- General (sin animal específico) --</option></select>
+        </div>
+        <div class="form-group"><label>Fecha</label><input id="n-fecha" type="date"></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="n-tipo">
+            <option value="PARTO">Parto</option>
+            <option value="MUERTE">Muerte</option>
+            <option value="VENTA">Venta</option>
+            <option value="ENFERMEDAD">Enfermedad</option>
+            <option value="TRATAMIENTO">Tratamiento</option>
+            <option value="GENERAL">General</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Descripción</label><textarea id="n-texto" placeholder="Describe la novedad..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('novedad')">Cancelar</button>
+      <button class="btn btn-warning" onclick="saveNovedad()">💾 Guardar Novedad</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL VER ANIMAL ══ -->
+<div class="modal-overlay" id="modal-view">
+  <div class="modal" style="max-width:750px;">
+    <div class="modal-header">
+      <h3 id="view-title">Animal</h3>
+      <button class="modal-close" onclick="closeModal('view')">✕</button>
+    </div>
+    <div class="modal-body" id="view-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('view')">Cerrar</button>
+      <button class="btn btn-primary" id="view-edit-btn">✏️ Editar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DATA STORE
+// ══════════════════════════════════════════════
+
+// Excel date serial → JS Date
+function excelDate(serial) {
+  if (!serial || isNaN(serial)) return null;
+  const d = new Date((serial - 25569) * 86400000);
+  // fix UTC offset
+  return new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+}
+function fmtDate(d) {
+  if (!d) return '';
+  return d.toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtDateInput(d) {
+  if (!d) return '';
+  return d.toISOString().split('T')[0];
+}
+function parseExcelDate(serial) {
+  const d = excelDate(serial);
+  return d ? fmtDateInput(d) : '';
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+// Pre-loaded data from Excel
+let animales = [
+  {id:1,nombre:'LIRA',chapeta:'',piel:'154-1',cat:'VH',parto:parseExcelDate(45459),proxParto:parseExcelDate(45845),padre:'',concepcion:'MN',del:315,estados:['P+30 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'(MURIO LA CRIA)',secado:parseExcelDate(45624)},
+  {id:2,nombre:'VIOLETA',chapeta:'4742-7',piel:'13 EMB',cat:'VH',parto:parseExcelDate(45284),proxParto:parseExcelDate(45876),padre:'',concepcion:'EMB F1',del:490,estados:['CLOD','P+ 50 DIAS','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45650)},
+  {id:3,nombre:'TEQUILA',chapeta:'4723-0',piel:'22 EMB',cat:'VH',parto:parseExcelDate(45111),proxParto:parseExcelDate(45971),padre:'UNICO',concepcion:'EMB GYR',del:663,estados:['CLOD','CLOD SX','FOD','SERVIDA 1-FEB','P+ 1-2-25'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:4,nombre:'GISELL',chapeta:'',piel:'206-21',cat:'VH',parto:'',proxParto:parseExcelDate(45929),padre:'',concepcion:'MN',del:null,estados:['FOI','FOD SX','P+ 36 DIAS (RUBRO)','P+','P+'],estadoActual:'P+',ultConcepcion:'',obs:'(MURIO LA CRIA)',secado:''},
+  {id:5,nombre:'MARILI',chapeta:'4763-3',piel:'18 EMB',cat:'VH',parto:parseExcelDate(45284),proxParto:parseExcelDate(45815),padre:'',concepcion:'EMB F1',del:490,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'',secado:parseExcelDate(45686)},
+  {id:6,nombre:'DALMATA',chapeta:'4746-8',piel:'80',cat:'VH',parto:parseExcelDate(45281),proxParto:'',padre:'',concepcion:'MN',del:493,estados:['P+100 DIAS','P+','P+','ABORTADA 8-FEB-25','SERVIDA EL 22/3/25 INFINITO'],estadoActual:'SERVIDA',ultConcepcion:'EMB F1',obs:'Abortada 8-feb-25, servida 22/3/25',secado:parseExcelDate(45624)},
+  {id:7,nombre:'LEYENDA',chapeta:'4728-6',piel:'16 EMB',cat:'VH',parto:parseExcelDate(45225),proxParto:parseExcelDate(45815),padre:'',concepcion:'EMB F1',del:549,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45672)},
+  {id:8,nombre:'ROJITA',chapeta:'5566-2',piel:'75',cat:'VH',parto:parseExcelDate(45394),proxParto:parseExcelDate(45825),padre:'',concepcion:'MN',del:380,estados:['P+70 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45686)},
+  {id:9,nombre:'CACHARA',chapeta:'6388-4',piel:'903',cat:'VP',parto:parseExcelDate(45365),proxParto:'',padre:'ENLEVO X 010-22',concepcion:'EMB',del:87,estados:['P+180 DIAS','P+','P+','RP','CLOI 2 CC PGF2'],estadoActual:'CLOI',ultConcepcion:'EMB GYR',obs:'23.5KG cría',secado:''},
+  {id:10,nombre:'CORNIS',chapeta:'5555-5',piel:'84',cat:'VH',parto:parseExcelDate(45293),proxParto:parseExcelDate(45782),padre:'',concepcion:'MN',del:481,estados:['P+100 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'EMB F1',obs:'',secado:parseExcelDate(45624)},
+  {id:11,nombre:'DIABLA',chapeta:'7486-2',piel:'83',cat:'VP',parto:parseExcelDate(45234),proxParto:'',padre:'ENLEVO X 010-22',concepcion:'EMB F1',del:82,estados:['P+180 DIAS','P+','P+','RP','CLOI 2 CC PGF2'],estadoActual:'CLOI',ultConcepcion:'EMB GYR',obs:'24.5 KG cría',secado:parseExcelDate(45624)},
+  {id:12,nombre:'CARETICA',chapeta:'7538-0',piel:'76',cat:'VH',parto:parseExcelDate(45356),proxParto:parseExcelDate(45987),padre:'',concepcion:'MN',del:418,estados:['CLOD','CLOI SX','CLOD SX','SERVIDA 1003-20 17-2-25','P+ 17-2-25'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45686)},
+  {id:13,nombre:'MARAVILLA',chapeta:'6379-3',piel:'586',cat:'VH',parto:parseExcelDate(45301),proxParto:parseExcelDate(45950),padre:'',concepcion:'MN',del:473,estados:['CLOD','FOD SX','SERVIDA','P+38 DIAS','P+'],estadoActual:'P+',ultConcepcion:'RUBRO',obs:'3 TETAS - CRIA VENDIA',secado:parseExcelDate(45649)},
+  {id:14,nombre:'CONSUELO',chapeta:'',piel:'43',cat:'VH',parto:parseExcelDate(45275),proxParto:parseExcelDate(45961),padre:'',concepcion:'MN',del:499,estados:['P+30 DIAS','P+','CLOI','P+ 27DIAS','P+'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'',secado:parseExcelDate(45649)},
+  {id:15,nombre:'NUCITA',chapeta:'5560-5',piel:'77',cat:'VP',parto:parseExcelDate(45324),proxParto:parseExcelDate(45864),padre:'',concepcion:'MN',del:450,estados:['CLOI','P+ 45 DIAS','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45754)},
+  {id:16,nombre:'HELADIA',chapeta:'7518-2',piel:'74',cat:'VH',parto:parseExcelDate(45287),proxParto:'',padre:'',concepcion:'MN',del:487,estados:['CLOI','FOI SX','muerta prolapso','',''],estadoActual:'MUERTA',ultConcepcion:'',obs:'MUERTE PROLAPSO 10/1/25',secado:parseExcelDate(45650)},
+  {id:17,nombre:'MACARENA',chapeta:'4726-0',piel:'20 EMB',cat:'VH',parto:parseExcelDate(45125),proxParto:parseExcelDate(45825),padre:'UNICO',concepcion:'EMB GYR',del:649,estados:['P+70 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45672)},
+  {id:18,nombre:'MEDUSA',chapeta:'4741-9',piel:'5 EMB',cat:'VH',parto:parseExcelDate(45061),proxParto:parseExcelDate(45815),padre:'',concepcion:'MN',del:713,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'CRIA VENDIA',secado:parseExcelDate(45649)},
+  {id:19,nombre:'TOPO',chapeta:'7347-1',piel:'347',cat:'VH',parto:parseExcelDate(45282),proxParto:'',padre:'',concepcion:'MN',del:492,estados:['CLOD','FOI SX','CLOD','SERVIDA 1-FEB','CLOD'],estadoActual:'CLOD',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45653)},
+  {id:20,nombre:'CORDOBA',chapeta:'',piel:'205',cat:'VH',parto:parseExcelDate(45295),proxParto:parseExcelDate(45951),padre:'',concepcion:'MN',del:479,estados:['CLOD','CLOD','P+ 40 DIAS','P+','P+'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'CRIA VENDIA',secado:parseExcelDate(45624)},
+  {id:21,nombre:'CAMISA RAYA',chapeta:'4761-7',piel:'17 EMB',cat:'VH',parto:parseExcelDate(45373),proxParto:parseExcelDate(45825),padre:'',concepcion:'MN',del:401,estados:['P+70 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'CRIA VENDIA',secado:parseExcelDate(45672)},
+  {id:22,nombre:'MANTEQUILLA',chapeta:'5563-9',piel:'79',cat:'VH',parto:parseExcelDate(45293),proxParto:parseExcelDate(45868),padre:'',concepcion:'MN',del:481,estados:['CLOD','P+ 35 DIAS','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:23,nombre:'CAFETERA',chapeta:'4757-5',piel:'24 EMB',cat:'VH',parto:parseExcelDate(45116),proxParto:parseExcelDate(45825),padre:'',concepcion:'MN',del:658,estados:['P+70 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'CRIA VENDIA',secado:parseExcelDate(45320)},
+  {id:24,nombre:'BETANIA',chapeta:'',piel:'44',cat:'VH',parto:parseExcelDate(44973),proxParto:parseExcelDate(45782),padre:'',concepcion:'MN',del:801,estados:['P+100 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'EMB F1',obs:'CRIA VENDIA',secado:parseExcelDate(45624)},
+  {id:25,nombre:'ESMERALDA',chapeta:'4755-9',piel:'7 EMB',cat:'VP',parto:parseExcelDate(45227),proxParto:parseExcelDate(45864),padre:'',concepcion:'EMB F1',del:547,estados:['CLOD','P+ 45 DIAS','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:''},
+  {id:26,nombre:'IBETH',chapeta:'4751-8',piel:'2 EMB',cat:'VH',parto:parseExcelDate(45036),proxParto:parseExcelDate(45824),padre:'',concepcion:'EMB F1',del:738,estados:['CLOD','COJA?','P+ 85 DIAS','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45624)},
+  {id:27,nombre:'NEGRA GRANDE',chapeta:'6384-3',piel:'606',cat:'VH',parto:parseExcelDate(45224),proxParto:parseExcelDate(45854),padre:'',concepcion:'EMB F1',del:550,estados:['CLOD','P+ 55 DIAS','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45686)},
+  {id:28,nombre:'TURQUESA',chapeta:'4744-3',piel:'25 EMB',cat:'VH',parto:parseExcelDate(45284),proxParto:'',padre:'',concepcion:'MN',del:490,estados:['CLOD','FOD SX','SERVIDA','SERVIDA 27-ENE','CLOD'],estadoActual:'CLOD',ultConcepcion:'1003-20',obs:'CRIA VENDIA',secado:parseExcelDate(45672)},
+  {id:29,nombre:'PIDIENDO VIA',chapeta:'7543-0',piel:'81',cat:'VH',parto:parseExcelDate(45279),proxParto:parseExcelDate(45815),padre:'',concepcion:'MN',del:495,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:30,nombre:'ROSARIO',chapeta:'4748-4',piel:'78',cat:'VH',parto:parseExcelDate(45232),proxParto:parseExcelDate(45995),padre:'',concepcion:'EMB F1',del:542,estados:['CLOD','FOD SX','FOD-COJA','SERVIDA 30-1-25','P+ 25-2-25'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'',secado:parseExcelDate(45653)},
+  {id:31,nombre:'CAROLINA',chapeta:'4732-8',piel:'15 EMB',cat:'VH',parto:parseExcelDate(45110),proxParto:'',padre:'UNICO',concepcion:'EMB GYR',del:664,estados:['CLOD','FOD','FOD','FOD','FOD 2.5 GESTAR + FOSFORO'],estadoActual:'FOD',ultConcepcion:'',obs:'',secado:parseExcelDate(45624)},
+  {id:32,nombre:'MUÑECA',chapeta:'',piel:'45',cat:'VP',parto:parseExcelDate(45355),proxParto:parseExcelDate(45825),padre:'',concepcion:'MN SA',del:419,estados:['P+50 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45686)},
+  {id:33,nombre:'INGRID',chapeta:'4759-1',piel:'8 EMB',cat:'VH',parto:parseExcelDate(45228),proxParto:parseExcelDate(45797),padre:'',concepcion:'EMB F1',del:546,estados:['P+80 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:34,nombre:'MOJARRA',chapeta:'6390-0',piel:'524',cat:'VH',parto:parseExcelDate(45254),proxParto:parseExcelDate(45815),padre:'',concepcion:'EMB F1',del:520,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:35,nombre:'B/QUILLA',chapeta:'5557-1',piel:'46',cat:'VH',parto:parseExcelDate(45293),proxParto:parseExcelDate(45966),padre:'',concepcion:'MN',del:481,estados:['CLOD','FOI SX','SERVIDA','SERVIDA 27-ENE','P+ 27-1-25'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'3 TETAS - CRIA VENDIA',secado:parseExcelDate(45649)},
+  {id:36,nombre:'CHANEL',chapeta:'4730-2',piel:'4 EMB',cat:'VH',parto:parseExcelDate(45264),proxParto:parseExcelDate(45782),padre:'Ranger red',concepcion:'EMB F1',del:2,estados:['P+100 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'EMB F1',obs:'17.5 KG cría',secado:''},
+  {id:37,nombre:'PANDORA',chapeta:'4729-4',piel:'6 EMB',cat:'VH',parto:parseExcelDate(45308),proxParto:parseExcelDate(45991),padre:'',concepcion:'MN',del:466,estados:['CLOD','PGF2 QCOD','QLOD','QLOD PGF2','P+ 21-2-25 NAVIRAI'],estadoActual:'P+',ultConcepcion:'NAVIRAI',obs:'',secado:parseExcelDate(45649)},
+  {id:38,nombre:'TIERRELITA',chapeta:'5565-4',piel:'47',cat:'VP',parto:parseExcelDate(45445),proxParto:parseExcelDate(45951),padre:'',concepcion:'MN',del:329,estados:['MF','FOD SX','SERVIDA','P+ 36 DIAS','P+'],estadoActual:'P+',ultConcepcion:'RUBRO',obs:'',secado:''},
+  {id:39,nombre:'TRIANA',chapeta:'4762-5',piel:'9 EMB',cat:'VP',parto:parseExcelDate(45317),proxParto:parseExcelDate(45929),padre:'',concepcion:'MN',del:457,estados:['CLOD','CLOD SX','P+ 36 DIAS REM','P+','P+'],estadoActual:'P+',ultConcepcion:'',obs:'',secado:''},
+  {id:40,nombre:'CHIQUI',chapeta:'6378-5',piel:'519',cat:'VH',parto:parseExcelDate(45354),proxParto:parseExcelDate(45608),padre:'',concepcion:'MN',del:420,estados:['CLOD','FOD SX','QFOI SX','SERVIDA','P+ 3-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:parseExcelDate(45672)},
+  {id:41,nombre:'SUEÑITO',chapeta:'4764-1',piel:'12 EMB',cat:'VH',parto:parseExcelDate(45226),proxParto:parseExcelDate(45815),padre:'',concepcion:'EMB F1',del:548,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45691)},
+  {id:42,nombre:'TIRATE CONTRA EL SUELO',chapeta:'7546-3',piel:'48',cat:'VH',parto:parseExcelDate(45287),proxParto:parseExcelDate(45807),padre:'',concepcion:'MN',del:487,estados:['P+70 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1003-20',obs:'',secado:parseExcelDate(45649)},
+  {id:43,nombre:'COLA DE PLATA',chapeta:'6387-6',piel:'520',cat:'VH',parto:parseExcelDate(45310),proxParto:parseExcelDate(45929),padre:'',concepcion:'MN',del:464,estados:['FOI','FOD SX','P+ 36 DIAS REM','PARTO 29-SEP','P+'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:parseExcelDate(45649)},
+  {id:44,nombre:'GITANA',chapeta:'4754-2',piel:'19 EMB',cat:'VP',parto:parseExcelDate(45364),proxParto:parseExcelDate(45929),padre:'',concepcion:'MN',del:410,estados:['CLOD','CLOI SX','P+ 36 DIAS REM','P+','P+'],estadoActual:'P+',ultConcepcion:'',obs:'',secado:''},
+  {id:45,nombre:'CORDOBESA',chapeta:'',piel:'699-8',cat:'VH',parto:parseExcelDate(45593),proxParto:'',padre:'GK',concepcion:'MN',del:181,estados:['FOD','','','',''],estadoActual:'FOD',ultConcepcion:'',obs:'(MURIO LA CRIA)',secado:''},
+  {id:46,nombre:'BOGOTA',chapeta:'7345-5',piel:'585',cat:'VP',parto:parseExcelDate(45590),proxParto:parseExcelDate(45973),padre:'',concepcion:'MN',del:184,estados:['RP','FOD SX','FOD SX','SERVIDA','P+ 3-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:''},
+  {id:47,nombre:'COLOMBINA',chapeta:'1872-4',piel:'330',cat:'VP',parto:parseExcelDate(45591),proxParto:parseExcelDate(45951),padre:'',concepcion:'MN',del:183,estados:['CLOI','CLOI','SERVIDA','P+ 36 DIAS','P+'],estadoActual:'P+',ultConcepcion:'ADITIVO',obs:'',secado:''},
+  {id:48,nombre:'BRIANDA',chapeta:'4739-3',piel:'11 EMB',cat:'VP',parto:parseExcelDate(45453),proxParto:parseExcelDate(45995),padre:'',concepcion:'MN',del:321,estados:['FOI','FOI','SERVIDA','CLOD','P+ 25-2-25 NAVIRAI'],estadoActual:'P+',ultConcepcion:'NAVIRAI',obs:'',secado:''},
+  {id:49,nombre:'CARA DE QUESO',chapeta:'6383-5',piel:'350',cat:'VP',parto:parseExcelDate(45275),proxParto:'',padre:'',concepcion:'MN',del:499,estados:['FOD','MF','MF','MF','FOD 2.5 GESTAR'],estadoActual:'FOD',ultConcepcion:'',obs:'',secado:''},
+  {id:50,nombre:'RAQUEL',chapeta:'5026-6',piel:'50',cat:'VP',parto:parseExcelDate(45528),proxParto:parseExcelDate(45973),padre:'',concepcion:'MN',del:246,estados:['FOD','CLOD SX','CLOI SX','SERVIDA','P+ 3-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:''},
+  {id:51,nombre:'NEGRITA',chapeta:'7544-8',piel:'51',cat:'VP',parto:parseExcelDate(45538),proxParto:'',padre:'',concepcion:'MN',del:236,estados:['FOD','FOD','FOD SX','SERVIDA','SERVIDA 2/4/25 INFINITO'],estadoActual:'SERVIDA',ultConcepcion:'',obs:'',secado:''},
+  {id:52,nombre:'ZANAHORIA',chapeta:'5569-6',piel:'52',cat:'VP',parto:parseExcelDate(45423),proxParto:'',padre:'',concepcion:'MN',del:351,estados:['MF','FOD','FOI SX','SERVIDA','SERVIDA 28/3/25 ESCANDINAVO'],estadoActual:'SERVIDA',ultConcepcion:'',obs:'',secado:''},
+  {id:53,nombre:'NEVADA',chapeta:'5567-0',piel:'53',cat:'VP',parto:parseExcelDate(45498),proxParto:parseExcelDate(45973),padre:'',concepcion:'MN',del:276,estados:['FOD','FOD SX','FOI SX','SERVIDA','P+ 3-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:''},
+  {id:54,nombre:'KALESERINA',chapeta:'',piel:'032-17',cat:'VP',parto:parseExcelDate(45526),proxParto:'',padre:'',concepcion:'MN',del:248,estados:['MF','MF','MF','NO TACTO','CLOD 2 CC PGF2'],estadoActual:'CLOD',ultConcepcion:'',obs:'',secado:''},
+  {id:55,nombre:'PALMARA',chapeta:'',piel:'146/1',cat:'VP',parto:parseExcelDate(45456),proxParto:'',padre:'',concepcion:'MN',del:318,estados:['FOD','FOD SX','CLOD SX','SERVIDA','SERVIDA 18/3/25 RUBRO'],estadoActual:'SERVIDA',ultConcepcion:'',obs:'',secado:''},
+  {id:56,nombre:'LOLA',chapeta:'',piel:'1209-18',cat:'VP',parto:parseExcelDate(45573),proxParto:'',padre:'',concepcion:'MN',del:201,estados:['FOD','FOD SX','FOI SX','SERVIDA','FOD'],estadoActual:'FOD',ultConcepcion:'',obs:'Vendida descarte',secado:''},
+  {id:57,nombre:'DIENTESITO',chapeta:'5559-7',piel:'54',cat:'VP',parto:parseExcelDate(45503),proxParto:parseExcelDate(45986),padre:'',concepcion:'MN',del:271,estados:['MF','MF','MF','NO TACTO','P+ 16-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'3 TETAS',secado:''},
+  {id:58,nombre:'CACHACA',chapeta:'5024-8',piel:'82',cat:'VP',parto:parseExcelDate(45555),proxParto:parseExcelDate(45981),padre:'',concepcion:'MN',del:219,estados:['FOI','FOD','FOD SX','SERVIDA','P+ 11-2-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:''},
+  {id:59,nombre:'BABILLA',chapeta:'6389-2',piel:'557',cat:'VP',parto:parseExcelDate(45427),proxParto:parseExcelDate(45947),padre:'',concepcion:'MN',del:347,estados:['CLOD','CLOD SX','SERVIDA','P+ 41 DIAS','P+'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'2 TETAS',secado:''},
+  {id:60,nombre:'SONIA',chapeta:'',piel:'55',cat:'VP',parto:parseExcelDate(45571),proxParto:'',padre:'',concepcion:'MN',del:203,estados:['MF','MF','MF','MF','MUERTA ACCIDENTE'],estadoActual:'MUERTA',ultConcepcion:'',obs:'MUERTA ACCIDENTE',secado:''},
+  {id:61,nombre:'PATURRA HIJA',chapeta:'7529-9',piel:'56',cat:'VP',parto:parseExcelDate(45463),proxParto:'',padre:'',concepcion:'MN',del:311,estados:['FOD','FOD','FOD','NO TACTO','FOI 2.5 GESTAR'],estadoActual:'FOI',ultConcepcion:'',obs:'',secado:''},
+  {id:62,nombre:'DULCINEA',chapeta:'4731-0',piel:'3 EMB',cat:'VP',parto:parseExcelDate(45457),proxParto:parseExcelDate(45979),padre:'UNICO',concepcion:'EMB GYR',del:317,estados:['FOD','FOI','FOD ESTOMATITIS','NO TACTO','P+ 9-3-25 REM'],estadoActual:'P+',ultConcepcion:'REM INFINITO',obs:'',secado:''},
+  {id:63,nombre:'CHISPITA',chapeta:'7488-8',piel:'58',cat:'VH',parto:'',proxParto:parseExcelDate(45777),padre:'UNICO',concepcion:'EMB GYR',del:null,estados:['P+ 90 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:64,nombre:'SITIO NUEVO',chapeta:'',piel:'630',cat:'VP',parto:parseExcelDate(45741),proxParto:parseExcelDate(45741),padre:'AJCA 3453 X MDVS 2663',concepcion:'',del:33,estados:['P+150 DIAS','P+','P+','P+(PARTO 25-MARZ)','RP'],estadoActual:'RP',ultConcepcion:'EMB RS',obs:'17 KG cría',secado:''},
+  {id:65,nombre:'SIRENITA',chapeta:'',piel:'190-9-21',cat:'VP',parto:parseExcelDate(45747),proxParto:parseExcelDate(45741),padre:'AJCA 3453 X MDVS 2664',concepcion:'',del:27,estados:['P+150 DIAS','P+','P+','P+(PARTO 25-MARZ)','RP'],estadoActual:'RP',ultConcepcion:'EMB RS',obs:'18.5 KG cría',secado:''},
+  {id:66,nombre:'(SIN NOMBRE)',chapeta:'',piel:'1124',cat:'NV',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['FOD','FOI','FOD','FOD','CLOD'],estadoActual:'CLOD',ultConcepcion:'',obs:'Vendida descarte',secado:''},
+  {id:67,nombre:'HUEVO CRIOLLO',chapeta:'7514-1',piel:'59',cat:'VH',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['FOD','','','',''],estadoActual:'DESCARTE',ultConcepcion:'',obs:'DESCARTE',secado:''},
+  {id:68,nombre:'(SIN NOMBRE 68)',chapeta:'',piel:'130-0',cat:'VH',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['QFOD','','','',''],estadoActual:'DESCARTE',ultConcepcion:'',obs:'DESCARTE',secado:''},
+  {id:69,nombre:'OJOS NEGROS',chapeta:'5558-9',piel:'60',cat:'VH',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['MF','','','',''],estadoActual:'DESCARTE',ultConcepcion:'',obs:'DESCARTE PROLAPSO',secado:''},
+  {id:70,nombre:'LUCERITO',chapeta:'6385-0',piel:'870',cat:'VH',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['FOD','','','',''],estadoActual:'DESCARTE',ultConcepcion:'',obs:'DESCARTE 2 ABORTOS',secado:''},
+  {id:71,nombre:'JUANA',chapeta:'7548-9',piel:'61',cat:'VP',parto:parseExcelDate(45754),proxParto:parseExcelDate(45741),padre:'',concepcion:'',del:20,estados:['P+160 DIAS','P+','P+','P+ PREPARTO','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'',obs:'18 KG cría',secado:''},
+  {id:73,nombre:'CAPRICHOSA',chapeta:'',piel:'62',cat:'NV',parto:'',proxParto:parseExcelDate(45757),padre:'',concepcion:'',del:null,estados:['P+120 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:75,nombre:'ROSITA',chapeta:'',piel:'63',cat:'NV',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['FOD','FOD','FOD','FOD','FOD'],estadoActual:'FOD',ultConcepcion:'',obs:'Vendida descarte',secado:''},
+  {id:76,nombre:'BARCELONA',chapeta:'',piel:'212-21',cat:'NV',parto:'',proxParto:parseExcelDate(45973),padre:'',concepcion:'',del:null,estados:['P+180 DIAS','ABORTADA 28-11','FOD SX','SERVIDA','P+ 3-2-25 PARLAMENTO'],estadoActual:'P+',ultConcepcion:'PARLAMENTO',obs:'',secado:''},
+  {id:78,nombre:'ÑATA',chapeta:'',piel:'2906-20',cat:'VH',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:['FOD','MF','CLOD','CLOD','FOI 2.5 GESTAR + FOSFORO'],estadoActual:'FOI',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:80,nombre:'F2',chapeta:'',piel:'65',cat:'NV',parto:'',proxParto:parseExcelDate(45782),padre:'',concepcion:'',del:null,estados:['P+100 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:81,nombre:'CARA DE MICO',chapeta:'7533-1',piel:'66',cat:'VH',parto:'',proxParto:parseExcelDate(45830),padre:'',concepcion:'',del:null,estados:['P+45 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:83,nombre:'CAMPESINA',chapeta:'4753-4',piel:'21 EMB',cat:'VH',parto:'',proxParto:parseExcelDate(45782),padre:'',concepcion:'',del:null,estados:['P+90 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:84,nombre:'CORONCORO',chapeta:'5562-1',piel:'67',cat:'VP',parto:parseExcelDate(45704),proxParto:'',padre:'ENLEVO X 010-22',concepcion:'EMB GYR',del:70,estados:['P+180 DIAS','P+','P+ PROXIMA','RP','SERVIDA 6/4/25 ESCANDINAVO'],estadoActual:'SERVIDA',ultConcepcion:'EMB GYR',obs:'',secado:''},
+  {id:85,nombre:'MARIPOSA',chapeta:'5568-8',piel:'68',cat:'VH',parto:'',proxParto:parseExcelDate(45815),padre:'',concepcion:'EMBF1',del:null,estados:['P+60 DIAS','P+','P+','P+','P+'],estadoActual:'P+',ultConcepcion:'GK',obs:'',secado:''},
+  {id:86,nombre:'MEDIA LUNA',chapeta:'7489-6',piel:'69',cat:'VP',parto:parseExcelDate(45775),proxParto:parseExcelDate(45782),padre:'Ranger red',concepcion:'F1',del:0,estados:['P+100 DIAS','P+','P+','P+','PREPARTO'],estadoActual:'PREPARTO',ultConcepcion:'EMB F1',obs:'19.5 kg cría',secado:''},
+  {id:87,nombre:'SHAKIRA',chapeta:'4756-7',piel:'14 EMB',cat:'VH',parto:'',proxParto:parseExcelDate(45889),padre:'',concepcion:'',del:null,estados:['CLOD','CLOD','P+ 60 DIAS','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:''},
+  {id:88,nombre:'SUSANA',chapeta:'4758-3',piel:'23 EMB',cat:'VH',parto:'',proxParto:parseExcelDate(45945),padre:'',concepcion:'',del:null,estados:['FOD','CLOD','CLOI','P+ 42 DIAS','P+ 42 DIAS'],estadoActual:'P+',ultConcepcion:'1506-20',obs:'',secado:''},
+  {id:90,nombre:'MILENA',chapeta:'6381-9',piel:'888',cat:'VH',parto:'',proxParto:parseExcelDate(45865),padre:'',concepcion:'',del:null,estados:['CLOI','CLOD','P+ 85 DIAS','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:''},
+  {id:91,nombre:'CAMPANITA',chapeta:'7350-5',piel:'885',cat:'VH',parto:'',proxParto:parseExcelDate(45866),padre:'UNICO',concepcion:'EMB GYR',del:null,estados:['CLOD','CLOD','P+ 85 DIAS','P+','P+'],estadoActual:'P+',ultConcepcion:'1003-20',obs:'',secado:''},
+  // Toros
+  {id:93,nombre:'(Toro 1506-20)',chapeta:'',piel:'1506-20',cat:'To',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+  {id:94,nombre:'1003-20 (108-9 X 113-12)',chapeta:'',piel:'1003-20',cat:'To',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+  {id:95,nombre:'RAMBO',chapeta:'',piel:'113-12',cat:'To',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'Vendida descarte',secado:''},
+  // Hembras levante
+  {id:97,nombre:'11EMB X GK',chapeta:'',piel:'39',cat:'HL',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+  {id:98,nombre:'5567-0 X CORONCORO',chapeta:'',piel:'40',cat:'HL',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+  {id:99,nombre:'4 EMB X GK',chapeta:'',piel:'38',cat:'HL',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+  {id:100,nombre:'6386-8 X CORONCORO (73)',chapeta:'',piel:'73',cat:'HL',parto:'',proxParto:'',padre:'',concepcion:'',del:null,estados:[],estadoActual:'',ultConcepcion:'',obs:'',secado:''},
+];
+
+let pesajes = [
+  {id:1,numero:'240-23',nombre:'germani',fechaNac:'2023-02-26',registros:[{fecha:'2025-02-16',kg:322},{fecha:'2025-03-23',kg:325},{fecha:'2025-04-29',kg:319}]},
+  {id:2,numero:'708-23',nombre:'uva',fechaNac:'2023-11-20',registros:[{fecha:'2025-02-16',kg:275},{fecha:'2025-03-23',kg:280},{fecha:'2025-04-29',kg:278}]},
+  {id:3,numero:'701-23',nombre:'uva (701)',fechaNac:'2023-11-14',registros:[{fecha:'2025-02-16',kg:329},{fecha:'2025-03-23',kg:319},{fecha:'2025-04-29',kg:304}]},
+  {id:4,numero:'700-23',nombre:'unica',fechaNac:'2023-11-14',registros:[{fecha:'2025-02-16',kg:300},{fecha:'2025-03-23',kg:231},{fecha:'2025-04-29',kg:298}]},
+  {id:5,numero:'702-23',nombre:'universo',fechaNac:'2023-11-09',registros:[{fecha:'2025-02-16',kg:314},{fecha:'2025-03-23',kg:315},{fecha:'2025-04-29',kg:318}]},
+  {id:6,numero:'PACHO',nombre:'pacho',fechaNac:'',registros:[{fecha:'2025-02-16',kg:286},{fecha:'2025-03-23',kg:291},{fecha:'2025-04-29',kg:292}]},
+  {id:7,numero:'JERINGA',nombre:'jeringa',fechaNac:'',registros:[{fecha:'2025-02-16',kg:218}]},
+];
+
+let novedades = [
+  {id:1,animal:'HELADIA',fecha:'2025-01-10',tipo:'MUERTE',texto:'Muerte por prolapso. Animal #74 / Piel 7518-2'},
+  {id:2,animal:'SONIA',fecha:'2025-01-01',tipo:'MUERTE',texto:'Muerta por accidente. Animal #55'},
+  {id:3,animal:'PATURRA MAMA',fecha:'2025-02-03',tipo:'MUERTE',texto:'Murió el 3-2-25. Piel 444'},
+  {id:4,animal:'DALMATA',fecha:'2025-02-08',tipo:'GENERAL',texto:'Aborto el 8-feb-2025. Servida nuevamente el 22/3/25 con toro INFINITO'},
+  {id:5,animal:'GENERAL',fecha:'2025-01-01',tipo:'GENERAL',texto:'Inicio de año en finca. 101 animales registrados en inventario general.'},
+];
+
+let nextAnimalId = 200;
+let nextPesajeId = 10;
+let nextNovedadId = 10;
+let editingAnimalId = null;
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'inventario') renderInventario();
+  if (name === 'reproductivo') renderReproductivo();
+  if (name === 'pesaje') renderPesaje();
+  if (name === 'novedades') renderNovedades();
+  if (name === 'ia') { document.getElementById('ia-input').focus(); }
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function estadoClass(estado) {
+  if (!estado) return '';
+  const e = estado.toUpperCase();
+  if (e.includes('P+') || e.includes('PREÑADA')) return 'badge-preñada';
+  if (e.includes('PREPARTO')) return 'badge-preparto';
+  if (e.includes('SERVIDA')) return 'badge-servida';
+  if (e.includes('DESCARTE')) return 'badge-descarte';
+  if (e.includes('MUERTA') || e.includes('MUERTO')) return 'badge-muerta';
+  return 'badge-vacia';
+}
+function estadoDotClass(e) {
+  if (!e) return '';
+  const u = e.toUpperCase();
+  if (u.includes('P+') || u.includes('PREÑADA')) return 'pos';
+  if (u.includes('SERVIDA')) return 'srv';
+  if (u.includes('MUERTA') || u.includes('MUERTO') || u.includes('ABORTA') || u.includes('DESCARTE')) return 'bad';
+  return 'vac';
+}
+function catBadge(cat) {
+  return `<span class="badge badge-cat badge-cat-${cat}">${cat}</span>`;
+}
+function isPreñada(a) {
+  const e = (a.estadoActual||'').toUpperCase();
+  return e.includes('P+') && !e.includes('PREPARTO');
+}
+function isPreparto(a) { return (a.estadoActual||'').toUpperCase().includes('PREPARTO'); }
+function isVacia(a) {
+  const e = (a.estadoActual||'').toUpperCase();
+  return e.includes('CLOD') || e.includes('FOD') || e.includes('FOI') || e.includes('MF') || e.includes('RP');
+}
+function isServida(a) { return (a.estadoActual||'').toUpperCase().includes('SERVIDA'); }
+function isMuerta(a) { return (a.estadoActual||'').toUpperCase().includes('MUERTA'); }
+function isDescarte(a) { return (a.estadoActual||'').toUpperCase().includes('DESCARTE'); }
+function activeAnimals() { return animales.filter(a => a.cat !== 'To' && !isMuerta(a) && !isDescarte(a)); }
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const today = new Date();
+  document.getElementById('dash-fecha').textContent = today.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  const active = activeAnimals();
+  const total = animales.length;
+  const prenadas = active.filter(isPreñada).length;
+  const vacias = active.filter(isVacia).length;
+  const servidas = active.filter(isServida).length;
+  const preparto = active.filter(isPreparto).length;
+  const toros = animales.filter(a => a.cat === 'To').length;
+  const levante = animales.filter(a => a.cat === 'HL').length;
+
+  // header stats
+  document.getElementById('hs-total').textContent = active.length;
+  document.getElementById('hs-prenadas').textContent = prenadas;
+  document.getElementById('hs-vacias').textContent = vacias;
+  document.getElementById('hs-preparto').textContent = preparto;
+
+  document.getElementById('dash-cards').innerHTML = `
+    <div class="card verde"><div class="card-num">${prenadas}</div><div class="card-label">🐄 Preñadas</div></div>
+    <div class="card tierra"><div class="card-num">${preparto}</div><div class="card-label">🍼 Preparto</div></div>
+    <div class="card sol"><div class="card-num">${servidas}</div><div class="card-label">💉 Servidas</div></div>
+    <div class="card rojo"><div class="card-num">${vacias}</div><div class="card-label">⚠ Vacías/CLOD</div></div>
+    <div class="card azul"><div class="card-num">${toros}</div><div class="card-label">🐂 Toros</div></div>
+    <div class="card tierra"><div class="card-num">${levante}</div><div class="card-label">🌱 Levante</div></div>
+    <div class="card verde"><div class="card-num">${total}</div><div class="card-label">📋 Total Registros</div></div>
+  `;
+
+  // Próximos partos (90 días)
+  const cutoff = new Date(today.getTime() + 90 * 86400000);
+  const proxPartos = active
+    .filter(a => a.proxParto && new Date(a.proxParto) <= cutoff && new Date(a.proxParto) >= today)
+    .sort((a,b) => new Date(a.proxParto) - new Date(b.proxParto));
+
+  let alertasHtml = '';
+  if (proxPartos.length === 0) {
+    alertasHtml = '<p style="color:var(--gris-mid);font-size:0.85rem;padding:0.5rem 0;">No hay partos registrados en los próximos 90 días.</p>';
+  } else {
+    alertasHtml = '<div class="table-wrap"><table><thead><tr><th>Animal</th><th>Cat</th><th>Fecha Parto</th><th>Días Restantes</th><th>Estado</th><th>Concepción</th></tr></thead><tbody>';
+    proxPartos.forEach(a => {
+      const dias = Math.ceil((new Date(a.proxParto) - today) / 86400000);
+      const urgente = dias <= 14 ? 'background:rgba(139,32,32,0.07);' : '';
+      alertasHtml += `<tr style="${urgente}">
+        <td><strong>${a.nombre}</strong></td>
+        <td>${catBadge(a.cat)}</td>
+        <td>${new Date(a.proxParto).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</td>
+        <td><span style="font-family:'DM Mono',monospace;font-weight:700;color:${dias<=14?'var(--rojo-alerta)':'var(--pasto)'};">${dias} días</span></td>
+        <td><span class="badge ${estadoClass(a.estadoActual)}">${a.estadoActual}</span></td>
+        <td style="font-size:0.78rem;color:var(--gris-mid);">${a.ultConcepcion}</td>
+      </tr>`;
+    });
+    alertasHtml += '</tbody></table></div>';
+  }
+  document.getElementById('dash-alertas').innerHTML = alertasHtml;
+
+  // Distribución reproductiva
+  const items = [
+    {label:'Preñadas (P+)', n:prenadas, color:'var(--pasto)'},
+    {label:'Preparto', n:preparto, color:'var(--barro)'},
+    {label:'Servidas', n:servidas, color:'var(--azul-info)'},
+    {label:'Vacías/CLOD/FOD', n:vacias, color:'var(--sol)'},
+    {label:'Descarte', n:animales.filter(isDescarte).length, color:'var(--rojo-alerta)'},
+    {label:'Muertas', n:animales.filter(isMuerta).length, color:'#555'},
+  ];
+  const maxN = Math.max(...items.map(i => i.n)) || 1;
+  let distHtml = '<div style="display:flex;flex-direction:column;gap:0.6rem;max-width:600px;">';
+  items.forEach(item => {
+    const pct = (item.n / maxN * 100).toFixed(0);
+    distHtml += `
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div style="min-width:160px;font-size:0.8rem;font-weight:700;color:var(--tierra);">${item.label}</div>
+        <div style="flex:1;height:24px;background:var(--crema-dark);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${item.color};border-radius:4px;transition:width 0.6s ease;"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.8rem;min-width:30px;text-align:right;color:var(--tierra);">${item.n}</div>
+      </div>`;
+  });
+  distHtml += '</div>';
+  document.getElementById('dash-repro-dist').innerHTML = distHtml;
+}
+
+// ══════════════════════════════════════════════
+//  INVENTARIO
+// ══════════════════════════════════════════════
+function renderInventario() {
+  const search = document.getElementById('inv-search').value.toLowerCase();
+  const cat = document.getElementById('inv-cat').value;
+  const estadoF = document.getElementById('inv-estado').value.toUpperCase();
+
+  let filtered = animales.filter(a => {
+    const matchSearch = !search || a.nombre.toLowerCase().includes(search)
+      || (a.chapeta||'').toLowerCase().includes(search)
+      || (a.piel||'').toLowerCase().includes(search);
+    const matchCat = !cat || a.cat === cat;
+    const matchEstado = !estadoF || (a.estadoActual||'').toUpperCase().includes(estadoF)
+      || (a.obs||'').toUpperCase().includes(estadoF);
+    return matchSearch && matchCat && matchEstado;
+  });
+
+  document.getElementById('inv-count').textContent = filtered.length;
+
+  const tbody = document.getElementById('inv-tbody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11"><div class="empty-state"><div class="big">🔍</div><p>No se encontraron animales con ese filtro.</p></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(a => {
+    const estadoHtml = a.estadoActual
+      ? `<span class="badge ${estadoClass(a.estadoActual)}">${a.estadoActual}</span>`
+      : '<span style="color:var(--gris-mid);font-size:0.75rem;">—</span>';
+    const proxPartoHtml = a.proxParto
+      ? `<span style="font-family:'DM Mono',monospace;font-size:0.75rem;">${new Date(a.proxParto).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</span>`
+      : '—';
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gris-mid);">${a.id}</td>
+      <td><strong style="color:var(--tierra);">${a.nombre || '(S/N)'}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${a.chapeta||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${a.piel||'—'}</td>
+      <td>${catBadge(a.cat)}</td>
+      <td>${estadoHtml}</td>
+      <td>${proxPartoHtml}</td>
+      <td style="font-size:0.75rem;color:var(--gris-mid);">${a.ultConcepcion||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${a.del!=null?a.del:'—'}</td>
+      <td style="font-size:0.75rem;color:var(--gris-mid);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.obs||''}">${a.obs||'—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn btn-sm btn-ghost" onclick="viewAnimal(${a.id})">👁</button>
+          <button class="btn btn-sm btn-warning" onclick="openModal('animal', ${a.id})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAnimal(${a.id})">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  REPRODUCTIVO
+// ══════════════════════════════════════════════
+function renderReproductivo() {
+  const search = document.getElementById('rep-search').value.toLowerCase();
+  const filtro = document.getElementById('rep-filtro').value;
+
+  let filtered = animales.filter(a => a.cat !== 'To' && a.cat !== 'HL');
+  if (search) filtered = filtered.filter(a => a.nombre.toLowerCase().includes(search) || (a.piel||'').toLowerCase().includes(search));
+  if (filtro === 'prenada') filtered = filtered.filter(isPreñada);
+  if (filtro === 'vacia') filtered = filtered.filter(isVacia);
+  if (filtro === 'servida') filtered = filtered.filter(isServida);
+  if (filtro === 'preparto') filtered = filtered.filter(isPreparto);
+  if (filtro === 'problema') filtered = filtered.filter(a => isMuerta(a) || isDescarte(a) || (a.obs||'').toLowerCase().includes('muerto') || (a.obs||'').toLowerCase().includes('abor'));
+
+  const tbody = document.getElementById('rep-tbody');
+  tbody.innerHTML = filtered.map(a => {
+    const historial = a.estados.filter(Boolean).map(e =>
+      `<span class="estado-dot ${estadoDotClass(e)}">${e.length > 12 ? e.substring(0,12)+'…' : e}</span>`
+    ).join('');
+    const estadoHtml = a.estadoActual ? `<span class="badge ${estadoClass(a.estadoActual)}">${a.estadoActual}</span>` : '—';
+    const partoHtml = a.parto ? new Date(a.parto).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const proxHtml = a.proxParto ? new Date(a.proxParto).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    return `<tr>
+      <td><strong style="color:var(--tierra);">${a.nombre||'(S/N)'}</strong><br><span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gris-mid);">${a.piel||''}</span></td>
+      <td>${catBadge(a.cat)}</td>
+      <td><div class="estado-history">${historial||'<span style="color:var(--gris-mid);font-size:0.75rem;">—</span>'}</div></td>
+      <td>${estadoHtml}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${partoHtml}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${proxHtml}</td>
+      <td style="font-size:0.75rem;color:var(--gris-mid);">${a.ultConcepcion||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;">${a.del!=null?a.del+'d':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  if (!tbody.innerHTML) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="big">🔬</div><p>Sin resultados.</p></div></td></tr>';
+  }
+}
+
+// ══════════════════════════════════════════════
+//  PESAJE
+// ══════════════════════════════════════════════
+function renderPesaje() {
+  const cont = document.getElementById('pesaje-cards');
+  const maxKg = Math.max(...pesajes.flatMap(p => p.registros.map(r => r.kg))) || 400;
+
+  cont.innerHTML = pesajes.map(p => {
+    const registros = p.registros.map(r => {
+      const pct = (r.kg / maxKg * 100).toFixed(0);
+      return `<div class="pesaje-row">
+        <span class="pesaje-fecha">${new Date(r.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short'})}</span>
+        <div class="pesaje-bar-wrap"><div class="pesaje-bar" style="width:${pct}%"></div></div>
+        <span class="pesaje-kg">${r.kg} KG</span>
+      </div>`;
+    }).join('');
+
+    const lastKg = p.registros[p.registros.length-1]?.kg || 0;
+    const firstKg = p.registros[0]?.kg || 0;
+    const ganancia = lastKg - firstKg;
+    const color = ganancia >= 0 ? 'var(--pasto)' : 'var(--rojo-alerta)';
+
+    return `<div class="pesaje-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+        <div>
+          <div class="pesaje-animal-name">${p.nombre.toUpperCase()}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--gris-mid);">#${p.numero}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--tierra);">${lastKg} KG</div>
+          <div style="font-size:0.7rem;font-weight:700;color:${color};">${ganancia >= 0 ? '▲' : '▼'} ${Math.abs(ganancia)} KG</div>
+        </div>
+      </div>
+      ${registros}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  NOVEDADES
+// ══════════════════════════════════════════════
+function renderNovedades() {
+  const tipo = document.getElementById('nov-tipo').value;
+  let filtered = [...novedades].reverse();
+  if (tipo) filtered = filtered.filter(n => n.tipo === tipo);
+
+  const tipoColors = {PARTO:'var(--pasto)',MUERTE:'var(--rojo-alerta)',VENTA:'var(--azul-info)',ENFERMEDAD:'#8B4513',TRATAMIENTO:'var(--barro)',GENERAL:'var(--sol)'};
+
+  const cont = document.getElementById('novedades-list');
+  if (filtered.length === 0) {
+    cont.innerHTML = '<div class="empty-state"><div class="big">📝</div><p>No hay novedades registradas.</p></div>';
+    return;
+  }
+  cont.innerHTML = filtered.map(n => `
+    <div class="novedad-item" style="border-left-color:${tipoColors[n.tipo]||'var(--sol)'};">
+      <div class="novedad-header">
+        <div class="novedad-animal">🐄 ${n.animal}</div>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="novedad-fecha">${n.fecha ? new Date(n.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''}</div>
+          <button class="btn btn-sm btn-danger" onclick="deleteNovedad(${n.id})" style="padding:0.2rem 0.5rem;">🗑</button>
+        </div>
+      </div>
+      <div class="novedad-tipo" style="color:${tipoColors[n.tipo]||'var(--barro)'};">${n.tipo}</div>
+      <div class="novedad-texto">${n.texto}</div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════
+function openModal(type, id) {
+  if (type === 'animal') {
+    editingAnimalId = id;
+    document.getElementById('modal-animal-title').textContent = id ? '✏️ Editar Animal' : '🐄 Agregar Animal';
+    if (id) {
+      const a = animales.find(x => x.id === id);
+      if (a) {
+        document.getElementById('a-nombre').value = a.nombre||'';
+        document.getElementById('a-cat').value = a.cat||'VH';
+        document.getElementById('a-chapeta').value = a.chapeta||'';
+        document.getElementById('a-piel').value = a.piel||'';
+        document.getElementById('a-parto').value = a.parto||'';
+        document.getElementById('a-prox-parto').value = a.proxParto||'';
+        document.getElementById('a-padre').value = a.padre||'';
+        document.getElementById('a-concepcion').value = a.concepcion||'';
+        document.getElementById('a-del').value = a.del!=null?a.del:'';
+        document.getElementById('a-estado').value = a.estadoActual||'P+';
+        document.getElementById('a-ult-concepcion').value = a.ultConcepcion||'';
+        document.getElementById('a-obs').value = a.obs||'';
+      }
+    } else {
+      ['a-nombre','a-chapeta','a-piel','a-padre','a-concepcion','a-del','a-ult-concepcion','a-obs'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('a-parto').value='';
+      document.getElementById('a-prox-parto').value='';
+      document.getElementById('a-cat').value='VH';
+      document.getElementById('a-estado').value='P+';
+    }
+  }
+  if (type === 'reproductivo') {
+    const sel = document.getElementById('r-animal');
+    sel.innerHTML = animales.filter(a => a.cat!=='To').map(a => `<option value="${a.id}">${a.nombre||'(S/N)'} — ${a.piel||''}</option>`).join('');
+    document.getElementById('r-fecha').value = todayStr();
+  }
+  if (type === 'pesaje') {
+    document.getElementById('p-fecha').value = todayStr();
+    document.getElementById('p-animal').value='';
+    document.getElementById('p-numero').value='';
+    document.getElementById('p-peso').value='';
+    document.getElementById('p-obs').value='';
+  }
+  if (type === 'novedad') {
+    const sel = document.getElementById('n-animal');
+    sel.innerHTML = '<option value="_general">-- General --</option>' +
+      animales.filter(a => a.cat!=='To').map(a => `<option value="${a.nombre}">${a.nombre||'(S/N)'}</option>`).join('');
+    document.getElementById('n-fecha').value = todayStr();
+    document.getElementById('n-texto').value='';
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+
+function closeModal(type) {
+  document.getElementById('modal-' + type).classList.remove('open');
+}
+
+// ══════════════════════════════════════════════
+//  SAVE FUNCTIONS
+// ══════════════════════════════════════════════
+function saveAnimal() {
+  const data = {
+    nombre: document.getElementById('a-nombre').value.toUpperCase().trim(),
+    cat: document.getElementById('a-cat').value,
+    chapeta: document.getElementById('a-chapeta').value.trim(),
+    piel: document.getElementById('a-piel').value.trim(),
+    parto: document.getElementById('a-parto').value,
+    proxParto: document.getElementById('a-prox-parto').value,
+    padre: document.getElementById('a-padre').value.trim(),
+    concepcion: document.getElementById('a-concepcion').value.trim(),
+    del: document.getElementById('a-del').value ? parseInt(document.getElementById('a-del').value) : null,
+    estadoActual: document.getElementById('a-estado').value,
+    ultConcepcion: document.getElementById('a-ult-concepcion').value.trim(),
+    obs: document.getElementById('a-obs').value.trim(),
+  };
+  if (!data.nombre) { alert('El nombre es obligatorio'); return; }
+
+  if (editingAnimalId) {
+    const idx = animales.findIndex(a => a.id === editingAnimalId);
+    if (idx >= 0) {
+      const prev = animales[idx];
+      animales[idx] = {...prev, ...data};
+      if (data.estadoActual && data.estadoActual !== prev.estadoActual) {
+        animales[idx].estados = [...(prev.estados||[]), data.estadoActual];
+      }
+    }
+    showToast('✅ Animal actualizado');
+  } else {
+    const newA = {id: nextAnimalId++, estados:[data.estadoActual], ...data};
+    animales.push(newA);
+    showToast('✅ Animal agregado al inventario');
+  }
+  closeModal('animal');
+  renderInventario();
+  renderDashboard();
+  updateHeader();
+}
+
+function saveReproductivo() {
+  const animalId = parseInt(document.getElementById('r-animal').value);
+  const estado = document.getElementById('r-estado').value;
+  const toro = document.getElementById('r-toro').value.trim();
+  const obs = document.getElementById('r-obs').value.trim();
+  const fecha = document.getElementById('r-fecha').value;
+
+  const idx = animales.findIndex(a => a.id === animalId);
+  if (idx >= 0) {
+    animales[idx].estadoActual = estado;
+    animales[idx].estados = [...(animales[idx].estados||[]), estado];
+    if (toro) animales[idx].ultConcepcion = toro;
+    if (obs) animales[idx].obs = (animales[idx].obs ? animales[idx].obs + ' | ' : '') + `[${fecha}] ${obs}`;
+  }
+  closeModal('reproductivo');
+  renderReproductivo();
+  renderDashboard();
+  updateHeader();
+  showToast('✅ Estado reproductivo registrado');
+}
+
+function savePesaje() {
+  const nombre = document.getElementById('p-animal').value.trim();
+  const numero = document.getElementById('p-numero').value.trim();
+  const fecha = document.getElementById('p-fecha').value;
+  const kg = parseFloat(document.getElementById('p-peso').value);
+  if (!nombre || !kg) { alert('Animal y peso son obligatorios'); return; }
+
+  const existing = pesajes.find(p => p.nombre.toLowerCase() === nombre.toLowerCase() || p.numero === numero);
+  if (existing) {
+    existing.registros.push({fecha, kg});
+    showToast('✅ Pesaje agregado a ' + existing.nombre);
+  } else {
+    pesajes.push({id: nextPesajeId++, numero: numero||nombre, nombre, fechaNac:'', registros:[{fecha, kg}]});
+    showToast('✅ Nuevo animal de pesaje registrado');
+  }
+  closeModal('pesaje');
+  renderPesaje();
+}
+
+function saveNovedad() {
+  const animal = document.getElementById('n-animal').value;
+  const fecha = document.getElementById('n-fecha').value;
+  const tipo = document.getElementById('n-tipo').value;
+  const texto = document.getElementById('n-texto').value.trim();
+  if (!texto) { alert('La descripción es obligatoria'); return; }
+
+  novedades.push({id: nextNovedadId++, animal: animal === '_general' ? 'GENERAL' : animal, fecha, tipo, texto});
+  closeModal('novedad');
+  renderNovedades();
+  showToast('✅ Novedad registrada');
+}
+
+// ══════════════════════════════════════════════
+//  VIEW ANIMAL
+// ══════════════════════════════════════════════
+function viewAnimal(id) {
+  const a = animales.find(x => x.id === id);
+  if (!a) return;
+  document.getElementById('view-title').textContent = `🐄 ${a.nombre||'(S/N)'} — ${a.piel||''}`;
+  document.getElementById('view-edit-btn').onclick = () => { closeModal('view'); openModal('animal', id); };
+
+  const historial = (a.estados||[]).filter(Boolean).map(e =>
+    `<span class="estado-dot ${estadoDotClass(e)}">${e}</span>`
+  ).join('');
+
+  document.getElementById('view-body').innerHTML = `
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Categoría</div>${catBadge(a.cat)}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Estado Actual</div><span class="badge ${estadoClass(a.estadoActual)}">${a.estadoActual||'—'}</span></div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Chapeta</div><span style="font-family:'DM Mono',monospace;">${a.chapeta||'—'}</span></div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Piel</div><span style="font-family:'DM Mono',monospace;">${a.piel||'—'}</span></div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Último Parto</div>${a.parto ? new Date(a.parto).toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}) : '—'}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Próx. Parto</div>${a.proxParto ? '<strong style="color:var(--pasto);">'+new Date(a.proxParto).toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})+'</strong>' : '—'}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Padre</div>${a.padre||'—'}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Concepción</div>${a.concepcion||'—'}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">D.E.L</div>${a.del!=null?a.del+' días':'—'}</div>
+      <div><div style="font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--tierra);margin-bottom:4px;">Ult. Concepción</div>${a.ultConcepcion||'—'}</div>
+    </div>
+    <div class="section-divider">Historial Reproductivo</div>
+    <div class="estado-history" style="margin-bottom:1rem;">${historial||'Sin historial'}</div>
+    <div class="section-divider">Observaciones</div>
+    <p style="font-size:0.85rem;color:var(--noche);line-height:1.5;">${a.obs||'Sin observaciones registradas.'}</p>
+  `;
+  document.getElementById('modal-view').classList.add('open');
+}
+
+// ══════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════
+function deleteAnimal(id) {
+  if (!confirm('¿Eliminar este animal del inventario?')) return;
+  animales = animales.filter(a => a.id !== id);
+  renderInventario();
+  renderDashboard();
+  updateHeader();
+  showToast('🗑 Animal eliminado');
+}
+function deleteNovedad(id) {
+  if (!confirm('¿Eliminar esta novedad?')) return;
+  novedades = novedades.filter(n => n.id !== id);
+  renderNovedades();
+  showToast('🗑 Novedad eliminada');
+}
+
+// ══════════════════════════════════════════════
+//  TOAST & UTILS
+// ══════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+function updateHeader() {
+  const active = activeAnimals();
+  document.getElementById('hs-total').textContent = active.length;
+  document.getElementById('hs-prenadas').textContent = active.filter(isPreñada).length;
+  document.getElementById('hs-vacias').textContent = active.filter(isVacia).length;
+  document.getElementById('hs-preparto').textContent = active.filter(isPreparto).length;
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ══════════════════════════════════════════════
+//  IA ASISTENTE — DON ROSAL (Gemini)
+// ══════════════════════════════════════════════
+
+const GEMINI_KEY = 'AIzaSyDGVPSAZyympUea1T5bBDmzwdsdEvxwGLw';
+let chatHistory = [];
+
+// Build the full farm context to inject into every prompt
+function buildFarmContext() {
+  const active = activeAnimals();
+  const prenadas = active.filter(isPreñada);
+  const preparto = active.filter(isPreparto);
+  const vacias = active.filter(isVacia);
+  const servidas = active.filter(isServida);
+  const muertas = animales.filter(isMuerta);
+  const descarte = animales.filter(isDescarte);
+  const toros = animales.filter(a => a.cat === 'To');
+  const levante = animales.filter(a => a.cat === 'HL');
+
+  const today = new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'});
+
+  // Próximos partos 120 días
+  const proxPartos = active
+    .filter(a => a.proxParto && new Date(a.proxParto) >= new Date())
+    .sort((a,b) => new Date(a.proxParto)-new Date(b.proxParto))
+    .slice(0,20)
+    .map(a => {
+      const dias = Math.ceil((new Date(a.proxParto)-new Date())/86400000);
+      return `  - ${a.nombre} (${a.cat}, piel:${a.piel||'?'}): parto en ${dias} días (${a.proxParto}), concepción: ${a.ultConcepcion||'desconocida'}`;
+    }).join('\n');
+
+  // Animales con estado actual
+  const resumenAnimales = animales
+    .filter(a => a.nombre && a.nombre !== '(SIN NOMBRE)' && a.nombre !== '(SIN NOMBRE 68)')
+    .map(a => {
+      const histStr = (a.estados||[]).filter(Boolean).slice(-3).join(' → ');
+      return `  ${a.nombre} | ${a.cat} | Estado: ${a.estadoActual||'?'} | DEL: ${a.del??'?'}d | HistRec: ${histStr||'—'} | Obs: ${a.obs||'ninguna'}`;
+    }).join('\n');
+
+  // Pesajes
+  const pesajeResumen = pesajes.map(p => {
+    const pesos = p.registros.map(r => `${r.fecha}: ${r.kg}KG`).join(', ');
+    const trend = p.registros.length >= 2
+      ? (p.registros[p.registros.length-1].kg - p.registros[0].kg >= 0 ? '▲' : '▼')
+      : '—';
+    return `  ${p.nombre} (#${p.numero}): ${pesos} ${trend}`;
+  }).join('\n');
+
+  // Novedades recientes
+  const novedadesRec = novedades.slice(-10).map(n =>
+    `  [${n.fecha}] ${n.tipo} — ${n.animal}: ${n.texto}`
+  ).join('\n');
+
+  return `Hoy es ${today}. Eres Don Rosal, un zootecnista experto en ganadería bovina colombiana con profundo conocimiento en reproducción, manejo de hatos y nutrición. Tienes acceso a los datos completos de FINCA EL ROSAL.
+
+=== RESUMEN GENERAL ===
+- Total animales activos: ${active.length}
+- Vacas preñadas (P+): ${prenadas.length}
+- En preparto: ${preparto.length}
+- Vacías/CLOD/FOD: ${vacias.length}
+- Servidas: ${servidas.length}
+- Toros: ${toros.length} (${toros.map(t=>t.nombre||t.piel).join(', ')})
+- Hembras levante: ${levante.length}
+- Muertas este período: ${muertas.length}
+- En descarte: ${descarte.length}
+
+=== PRÓXIMOS PARTOS ===
+${proxPartos || '  Sin partos registrados próximamente'}
+
+=== INVENTARIO COMPLETO (nombre | cat | estado | DEL | historial reciente | observaciones) ===
+${resumenAnimales}
+
+=== CONTROL DE PESAJE ===
+${pesajeResumen}
+
+=== NOVEDADES RECIENTES ===
+${novedadesRec || '  Sin novedades'}
+
+Responde SIEMPRE en español colombiano, de forma clara y práctica. Usa emojis con moderación. Cuando des recomendaciones, sé específico con nombres de animales. Puedes usar listas y negritas en Markdown. Sé directo y útil como un buen mayordomo de finca.`;
+}
+
+function renderMarkdown(text) {
+  // Basic markdown: bold, lists, line breaks
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^### (.*?)$/gm, '<strong style="font-size:0.95rem;display:block;margin-top:0.5rem;">$1</strong>')
+    .replace(/^## (.*?)$/gm, '<strong style="font-size:1rem;display:block;margin-top:0.6rem;">$1</strong>')
+    .replace(/^- (.*?)$/gm, '• $1<br>')
+    .replace(/^\d+\. (.*?)$/gm, '→ $1<br>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendMessage(role, text, isTyping = false) {
+  const msgs = document.getElementById('ia-messages');
+  const div = document.createElement('div');
+  div.className = `ia-msg ${role === 'user' ? 'user' : ''}`;
+  div.id = isTyping ? 'ia-typing-indicator' : '';
+
+  const avatar = document.createElement('div');
+  avatar.className = `ia-avatar ${role === 'user' ? 'user' : 'bot'}`;
+  avatar.textContent = role === 'user' ? '👤' : '🐄';
+
+  const bubble = document.createElement('div');
+  bubble.className = `ia-bubble ${role === 'user' ? 'user' : 'bot'}`;
+
+  if (isTyping) {
+    bubble.innerHTML = '<div class="ia-typing"><span></span><span></span><span></span></div>';
+  } else {
+    bubble.innerHTML = role === 'user' ? text : renderMarkdown(text);
+  }
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('ia-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('ia-send-btn').disabled = true;
+
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', parts: [{ text }] });
+
+  const typingEl = appendMessage('bot', '', true);
+
+  try {
+    const systemPrompt = buildFarmContext();
+
+    const contents = chatHistory.length === 1
+      ? [{ role: 'user', parts: [{ text: systemPrompt + '\n\nPrimera consulta: ' + text }] }]
+      : [
+          { role: 'user', parts: [{ text: systemPrompt + '\n\nRecuerda este contexto en toda la conversación.' }] },
+          { role: 'model', parts: [{ text: '¡Entendido! Soy Don Rosal, tengo acceso a todos los datos de la finca. ¿En qué te puedo ayudar?' }] },
+          ...chatHistory
+        ];
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          systemInstruction: { parts: [{ text: systemPrompt }] }
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+      typingEl.remove();
+      appendMessage('bot', `❌ Error: ${data.error.message}`);
+      chatHistory.pop();
+    } else {
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '(Sin respuesta)';
+      chatHistory.push({ role: 'model', parts: [{ text: reply }] });
+      typingEl.remove();
+      appendMessage('bot', reply);
+    }
+  } catch (err) {
+    typingEl.remove();
+    appendMessage('bot', `❌ Error de conexión: ${err.message}`);
+    chatHistory.pop();
+  }
+
+  document.getElementById('ia-send-btn').disabled = false;
+  input.focus();
+}
+
+function sendQuick(btn) {
+  const text = btn.textContent.trim();
+  document.getElementById('ia-input').value = text;
+  sendMessage();
+}
+
+function clearChat() {
+  chatHistory = [];
+  const msgs = document.getElementById('ia-messages');
+  msgs.innerHTML = `
+    <div class="ia-msg">
+      <div class="ia-avatar bot">🐄</div>
+      <div class="ia-bubble bot">Chat limpiado. ¡Listo para una nueva consulta! 🤠</div>
+    </div>`;
+}
+
+// ── INIT
+renderDashboard();
+updateHeader();
+</script>
+</body>
+</html>
