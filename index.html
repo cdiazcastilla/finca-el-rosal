@@ -1887,71 +1887,45 @@ function buildFarmContext() {
   const preparto = active.filter(isPreparto);
   const vacias = active.filter(isVacia);
   const servidas = active.filter(isServida);
-  const muertas = animales.filter(isMuerta);
-  const descarte = animales.filter(isDescarte);
   const toros = animales.filter(a => a.cat === 'To');
-  const levante = animales.filter(a => a.cat === 'HL');
 
   const today = new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'});
 
-  // Próximos partos 120 días
+  // Solo próximos 10 partos
   const proxPartos = active
     .filter(a => a.proxParto && new Date(a.proxParto) >= new Date())
     .sort((a,b) => new Date(a.proxParto)-new Date(b.proxParto))
-    .slice(0,20)
+    .slice(0,10)
     .map(a => {
       const dias = Math.ceil((new Date(a.proxParto)-new Date())/86400000);
-      return `  - ${a.nombre} (${a.cat}, piel:${a.piel||'?'}): parto en ${dias} días (${a.proxParto}), concepción: ${a.ultConcepcion||'desconocida'}`;
-    }).join('\n');
+      return `${a.nombre}(${a.cat}):${dias}d,${a.ultConcepcion||'?'}`;
+    }).join('; ');
 
-  // Animales con estado actual
-  const resumenAnimales = animales
-    .filter(a => a.nombre && a.nombre !== '(SIN NOMBRE)' && a.nombre !== '(SIN NOMBRE 68)')
-    .map(a => {
-      const histStr = (a.estados||[]).filter(Boolean).slice(-3).join(' → ');
-      return `  ${a.nombre} | ${a.cat} | Estado: ${a.estadoActual||'?'} | DEL: ${a.del??'?'}d | HistRec: ${histStr||'—'} | Obs: ${a.obs||'ninguna'}`;
-    }).join('\n');
+  // Inventario compacto — solo nombre, cat, estado actual, DEL
+  const inv = animales
+    .filter(a => a.nombre && !a.nombre.startsWith('(SIN'))
+    .map(a => `${a.nombre}|${a.cat}|${a.estadoActual||'?'}|DEL:${a.del??'?'}|${a.obs?a.obs.substring(0,30):''}`)
+    .join('\n');
 
-  // Pesajes
-  const pesajeResumen = pesajes.map(p => {
-    const pesos = p.registros.map(r => `${r.fecha}: ${r.kg}KG`).join(', ');
-    const trend = p.registros.length >= 2
-      ? (p.registros[p.registros.length-1].kg - p.registros[0].kg >= 0 ? '▲' : '▼')
-      : '—';
-    return `  ${p.nombre} (#${p.numero}): ${pesos} ${trend}`;
-  }).join('\n');
+  // Pesaje compacto
+  const pes = pesajes.map(p => {
+    const ult = p.registros[p.registros.length-1];
+    return `${p.nombre}:${ult?.kg||'?'}KG`;
+  }).join(', ');
 
-  // Novedades recientes
-  const novedadesRec = novedades.slice(-10).map(n =>
-    `  [${n.fecha}] ${n.tipo} — ${n.animal}: ${n.texto}`
-  ).join('\n');
+  return `Eres Don Rosal, zootecnista experto en ganadería bovina colombiana. Hoy: ${today}.
 
-  return `Hoy es ${today}. Eres Don Rosal, un zootecnista experto en ganadería bovina colombiana con profundo conocimiento en reproducción, manejo de hatos y nutrición. Tienes acceso a los datos completos de FINCA EL ROSAL.
+FINCA EL ROSAL — RESUMEN:
+Activos:${active.length} | Preñadas:${prenadas.length} | Preparto:${preparto.length} | Vacías:${vacias.length} | Servidas:${servidas.length} | Toros:${toros.map(t=>t.nombre||t.piel).join(',')}
 
-=== RESUMEN GENERAL ===
-- Total animales activos: ${active.length}
-- Vacas preñadas (P+): ${prenadas.length}
-- En preparto: ${preparto.length}
-- Vacías/CLOD/FOD: ${vacias.length}
-- Servidas: ${servidas.length}
-- Toros: ${toros.length} (${toros.map(t=>t.nombre||t.piel).join(', ')})
-- Hembras levante: ${levante.length}
-- Muertas este período: ${muertas.length}
-- En descarte: ${descarte.length}
+PRÓXIMOS PARTOS: ${proxPartos||'ninguno'}
 
-=== PRÓXIMOS PARTOS ===
-${proxPartos || '  Sin partos registrados próximamente'}
+INVENTARIO (nombre|cat|estado|DEL|obs):
+${inv}
 
-=== INVENTARIO COMPLETO (nombre | cat | estado | DEL | historial reciente | observaciones) ===
-${resumenAnimales}
+PESAJE RECIENTE: ${pes}
 
-=== CONTROL DE PESAJE ===
-${pesajeResumen}
-
-=== NOVEDADES RECIENTES ===
-${novedadesRec || '  Sin novedades'}
-
-Responde SIEMPRE en español colombiano, de forma clara y práctica. Usa emojis con moderación. Cuando des recomendaciones, sé específico con nombres de animales. Puedes usar listas y negritas en Markdown. Sé directo y útil como un buen mayordomo de finca.`;
+Responde en español colombiano, claro y práctico. Sé específico con nombres de animales.`;
 }
 
 function renderMarkdown(text) {
